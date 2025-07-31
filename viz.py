@@ -142,7 +142,7 @@ if uploaded_file:
 
 
         # --- Output Table ---
-        st.subheader("📊 Player Rankings Comparison")
+        st.subheader("📊 Player Rankings Comparison ")
         st.dataframe(combined, use_container_width=True)
 
         st.download_button(
@@ -155,7 +155,7 @@ if uploaded_file:
 
         st.divider()
 
-        
+
         st.subheader("📈 Top 10 Biggest Rank Movers")
         top_movers = combined.sort_values(by='abs_change', ascending=False).head(10)
         st.dataframe(top_movers[
