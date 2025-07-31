@@ -182,32 +182,32 @@ if uploaded_file:
 
         st.altair_chart(scatter, use_container_width=True)
 
-        # --- Histogram: Status Quo Points ---
-        st.subheader("📈 Status Quo Points Distribution")
-        hist_statusquo_df = pd.DataFrame({'points': combined['status quo points']})
-        chart1 = alt.Chart(hist_statusquo_df).mark_bar().encode(
-            alt.X("points", bin=alt.Bin(maxbins=30), title='Status Quo Points'),
-            y=alt.Y('count()', title='Number of Players')
-        ).properties(width=600, height=400)
-        st.altair_chart(chart1, use_container_width=True)
+    #     # --- Histogram: Status Quo Points ---
+    #     st.subheader("📈 Status Quo Points Distribution")
+    #     hist_statusquo_df = pd.DataFrame({'points': combined['status quo points']})
+    #     chart1 = alt.Chart(hist_statusquo_df).mark_bar().encode(
+    #         alt.X("points", bin=alt.Bin(maxbins=30), title='Status Quo Points'),
+    #         y=alt.Y('count()', title='Number of Players')
+    #     ).properties(width=600, height=400)
+    #     st.altair_chart(chart1, use_container_width=True)
 
-        # --- Histogram + KDE: Model Points ---
-        st.subheader("📉 Model Points Distribution")
-        hist_model_df = pd.DataFrame({'points': combined['model points']})
-        chart2 = alt.Chart(hist_model_df).mark_bar(opacity=0.6).encode(
-            alt.X("points", bin=alt.Bin(maxbins=30), title='Model Points'),
-            y=alt.Y('count()', title='Number of Players')
-        )
-        kde = alt.Chart(hist_model_df).transform_density(
-            'points', as_=['points', 'density']
-        ).mark_line(color='red').encode(
-            x='points:Q',
-            y='density:Q'
-        )
-        st.altair_chart(chart2 + kde, use_container_width=True)
+    #     # --- Histogram + KDE: Model Points ---
+    #     st.subheader("📉 Model Points Distribution")
+    #     hist_model_df = pd.DataFrame({'points': combined['model points']})
+    #     chart2 = alt.Chart(hist_model_df).mark_bar(opacity=0.6).encode(
+    #         alt.X("points", bin=alt.Bin(maxbins=30), title='Model Points'),
+    #         y=alt.Y('count()', title='Number of Players')
+    #     )
+    #     kde = alt.Chart(hist_model_df).transform_density(
+    #         'points', as_=['points', 'density']
+    #     ).mark_line(color='red').encode(
+    #         x='points:Q',
+    #         y='density:Q'
+    #     )
+    #     st.altair_chart(chart2 + kde, use_container_width=True)
 
-    else:
-        st.info("Click 'Apply Scoring Model' to process rankings.")
+    # else:
+    #     st.info("Click 'Apply Scoring Model' to process rankings.")
 
 
 else:
