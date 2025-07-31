@@ -116,7 +116,7 @@ if uploaded_file:
         combined = combined.dropna(subset=['firstnam', 'lastnam'])
         combined = combined[combined['firstnam'].str.lower() != 'none']
         combined = combined[combined['lastnam'].str.lower() != 'none']
-        combined = combined[combined['status_quo_points_total'] >= 100]
+        combined = combined[combined['status_quo_points_total'] >= 150]
 
 
         # --- Rename & Reorder ---
@@ -138,6 +138,7 @@ if uploaded_file:
 
         combined['rank_change'] = combined['status quo rank'] - combined['model rank']
         combined['abs_change'] = combined['rank_change'].abs()
+        combined['points_change'] = combined['model points'] - combined['status quo points']
 
 
         # --- Output Table ---
@@ -168,19 +169,25 @@ if uploaded_file:
         st.subheader("🔀 Rank Comparison: Status Quo vs Model")
 
         scatter = alt.Chart(combined).mark_circle(size=80).encode(
-            x=alt.X('status quo rank', title='Status Quo Rank'),
-            y=alt.Y('model rank', title='Model Rank'),
+            x=alt.X('status quo points', title='Status Quo Points'),
+            y=alt.Y('model points', title='Model Points'),
             tooltip=[
                 'player number', 'first name', 'last name',
-                'status quo rank', 'model rank', 'rank_change'
+                'status quo rank', 'model rank', 'rank_change',
+                'status quo points', 'model points', 'points_change'
             ],
-            color=alt.Color('rank_change', scale=alt.Scale(scheme='redblue'), title='Rank Change')
+            color=alt.Color(
+                'points_change',
+                scale=alt.Scale(scheme='redblue', domainMid=0),
+                title='Points Change'
+            )
         ).properties(
             width=600,
             height=600
         ).interactive()
 
         st.altair_chart(scatter, use_container_width=True)
+
 
     #     # --- Histogram: Status Quo Points ---
     #     st.subheader("📈 Status Quo Points Distribution")
