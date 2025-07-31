@@ -153,6 +153,9 @@ if uploaded_file:
         )
 
 
+        st.divider()
+
+        
         st.subheader("📈 Top 10 Biggest Rank Movers")
         top_movers = combined.sort_values(by='abs_change', ascending=False).head(10)
         st.dataframe(top_movers[
@@ -160,6 +163,25 @@ if uploaded_file:
             'status quo rank', 'model rank', 'rank_change']
         ], use_container_width=True)
 
+
+        st.divider()
+
+        st.subheader("🔀 Rank Comparison: Status Quo vs Model")
+
+        scatter = alt.Chart(combined).mark_circle(size=80).encode(
+            x=alt.X('status quo rank', title='Status Quo Rank'),
+            y=alt.Y('model rank', title='Model Rank'),
+            tooltip=[
+                'player number', 'first name', 'last name',
+                'status quo rank', 'model rank', 'rank_change'
+            ],
+            color=alt.Color('rank_change', scale=alt.Scale(scheme='redblue'), title='Rank Change')
+        ).properties(
+            width=600,
+            height=600
+        ).interactive()
+
+        st.altair_chart(scatter, use_container_width=True)
 
         # --- Histogram: Status Quo Points ---
         st.subheader("📈 Status Quo Points Distribution")
@@ -188,23 +210,6 @@ if uploaded_file:
     else:
         st.info("Click 'Apply Scoring Model' to process rankings.")
 
-
-    st.subheader("🔀 Rank Comparison: Status Quo vs Model")
-
-    scatter = alt.Chart(combined).mark_circle(size=80).encode(
-        x=alt.X('status quo rank', title='Status Quo Rank'),
-        y=alt.Y('model rank', title='Model Rank'),
-        tooltip=[
-            'player number', 'first name', 'last name',
-            'status quo rank', 'model rank', 'rank_change'
-        ],
-        color=alt.Color('rank_change', scale=alt.Scale(scheme='redblue'), title='Rank Change')
-    ).properties(
-        width=600,
-        height=600
-    ).interactive()
-
-    st.altair_chart(scatter, use_container_width=True)
 
 else:
     st.info("Please upload your cleaned match-level CSV file to begin.")
