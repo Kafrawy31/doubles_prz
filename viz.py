@@ -168,9 +168,27 @@ if uploaded_file:
 
         st.subheader("🔀 Rank Comparison: Status Quo vs Model")
 
+        # --- Calculate min and max to span both axes equally ---
+        min_val = min(combined['status quo points'].min(), combined['model points'].min())
+        max_val = max(combined['status quo points'].max(), combined['model points'].max())
+
+        # --- Create reference diagonal line (x = y) ---
+        line_df = pd.DataFrame({
+            'x': [min_val, max_val],
+            'y': [min_val, max_val]
+        })
+        line = alt.Chart(line_df).mark_line(
+            color='gray',
+            strokeDash=[5, 5]
+        ).encode(
+            x='x:Q',
+            y='y:Q'
+        )
+
+        # --- Scatter plot of status quo vs. model points ---
         scatter = alt.Chart(combined).mark_circle(size=80).encode(
-            x=alt.X('status quo points', title='Status Quo Points'),
-            y=alt.Y('model points', title='Model Points'),
+            x=alt.X('status quo points', title='Status Quo Points', scale=alt.Scale(domain=[min_val, max_val])),
+            y=alt.Y('model points', title='Model Points', scale=alt.Scale(domain=[min_val, max_val])),
             tooltip=[
                 'player number', 'first name', 'last name',
                 'status quo rank', 'model rank', 'rank_change',
@@ -186,7 +204,9 @@ if uploaded_file:
             height=600
         ).interactive()
 
-        st.altair_chart(scatter, use_container_width=True)
+        # --- Combine scatter and diagonal line ---
+        st.subheader("🔁 Points Comparison: Status Quo vs Model")
+        st.altair_chart(scatter + line, use_container_width=True)
 
 
     #     # --- Histogram: Status Quo Points ---
