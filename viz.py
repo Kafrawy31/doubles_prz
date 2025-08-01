@@ -33,7 +33,7 @@ if 'scoring_matrix' not in st.session_state:
 if 'matrix_editor_key' not in st.session_state:
     st.session_state['matrix_editor_key'] = 'matrix_v1'
 
-# Initialize adjustment tables (multipliers, additions, subtractions)
+# Initialize adjustment tables
 types = default_matrix.index.tolist()
 if 'multipliers' not in st.session_state:
     st.session_state['multipliers'] = pd.DataFrame([[1.0] * len(types)], columns=types, index=['Multiplier'])
@@ -42,7 +42,7 @@ if 'additions' not in st.session_state:
 if 'subtractions' not in st.session_state:
     st.session_state['subtractions'] = pd.DataFrame([[0.0] * len(types)], columns=types, index=['Subtraction'])
 
-# --- Tournament Adjustments Editor ---
+# --- Adjustment Editors ---
 st.subheader("🏷️ Tournament Multipliers")
 multipliers = st.data_editor(
     st.session_state['multipliers'],
@@ -72,9 +72,9 @@ st.session_state['subtractions'] = subtractions.copy()
 
 # --- Apply Adjustments to Scoring Matrix ---
 if st.button("🔧 Apply Adjustments"):
-    # Start from the original default matrix
-    matrix = default_matrix.copy()
-    # Apply multiplier, addition, subtraction row-wise
+    # Start from the current scoring matrix (reflects any manual edits)
+    matrix = st.session_state['scoring_matrix'].copy()
+    # Apply multiplier, addition, subtraction
     matrix = matrix.mul(st.session_state['multipliers'].iloc[0], axis=0)
     matrix = matrix.add(st.session_state['additions'].iloc[0], axis=0)
     matrix = matrix.sub(st.session_state['subtractions'].iloc[0], axis=0)
@@ -112,7 +112,6 @@ if uploaded_file and st.button("Apply Scoring Model", key="apply_model"):
     st.session_state['scoring_matrix'] = scoring_matrix.copy()
     df = pd.read_csv(uploaded_file)
 
-    # Calculate points using status quo and model matrices
     df['status_quo_points'] = df.apply(
         lambda row: scoring_matrix_dict.get(row['trntype_pts'], {}).get(row['round'], 0), axis=1
     )
