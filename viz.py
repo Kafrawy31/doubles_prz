@@ -16,7 +16,7 @@ scoring_matrix_dict = {
     'GS':     {'W': 2000, 'F': 1200, 'SF': 720, 'QF': 360, 'R16': 180, 'R32': 90, 'R64': 45},
     '1000':   {'W': 1000, 'F': 600, 'SF': 360, 'QF': 180, 'R16': 90, 'R32': 45},
     '500':    {'W': 500,  'F': 300, 'SF': 180, 'QF': 90,  'R16': 45},
-    '250':    {'W': 250,  'F': 150, 'SF': 90,  'QF': 45,  'R16': 20},
+    '250':    {'W': 250,  'F': 150, 'SF': 90, 'QF': 45,  'R16': 20},
     'CH 175': {'W': 175,  'F': 100, 'SF': 60,  'QF': 32,  'R16': 15},
     'CH 125': {'W': 125,  'F': 75, 'SF': 45,  'QF': 25,  'R16': 11},
     'CH 100': {'W': 100,  'F': 60,  'SF': 36,  'QF': 20,  'R16': 9},
@@ -30,17 +30,66 @@ default_matrix = pd.DataFrame.from_dict(scoring_matrix_dict, orient='index').fil
 # --- Init session state ---
 if 'scoring_matrix' not in st.session_state:
     st.session_state['scoring_matrix'] = default_matrix.copy()
-
 if 'matrix_editor_key' not in st.session_state:
     st.session_state['matrix_editor_key'] = 'matrix_v1'
+
+# Initialize adjustment tables (multipliers, additions, subtractions)
+types = default_matrix.index.tolist()
+if 'multipliers' not in st.session_state:
+    st.session_state['multipliers'] = pd.DataFrame([[1.0] * len(types)], columns=types, index=['Multiplier'])
+if 'additions' not in st.session_state:
+    st.session_state['additions'] = pd.DataFrame([[0.0] * len(types)], columns=types, index=['Addition'])
+if 'subtractions' not in st.session_state:
+    st.session_state['subtractions'] = pd.DataFrame([[0.0] * len(types)], columns=types, index=['Subtraction'])
+
+# --- Tournament Adjustments Editor ---
+st.subheader("🏷️ Tournament Multipliers")
+multipliers = st.data_editor(
+    st.session_state['multipliers'],
+    num_rows="fixed",
+    key="multipliers_editor",
+    use_container_width=True
+)
+st.session_state['multipliers'] = multipliers.copy()
+
+st.subheader("➕ Tournament Additions")
+additions = st.data_editor(
+    st.session_state['additions'],
+    num_rows="fixed",
+    key="additions_editor",
+    use_container_width=True
+)
+st.session_state['additions'] = additions.copy()
+
+st.subheader("➖ Tournament Subtractions")
+subtractions = st.data_editor(
+    st.session_state['subtractions'],
+    num_rows="fixed",
+    key="subtractions_editor",
+    use_container_width=True
+)
+st.session_state['subtractions'] = subtractions.copy()
+
+# --- Apply Adjustments to Scoring Matrix ---
+if st.button("🔧 Apply Adjustments"):
+    # Start from the original default matrix
+    matrix = default_matrix.copy()
+    # Apply multiplier, addition, subtraction row-wise
+    matrix = matrix.mul(st.session_state['multipliers'].iloc[0], axis=0)
+    matrix = matrix.add(st.session_state['additions'].iloc[0], axis=0)
+    matrix = matrix.sub(st.session_state['subtractions'].iloc[0], axis=0)
+    st.session_state['scoring_matrix'] = matrix
+    st.session_state['matrix_editor_key'] = f"matrix_{pd.Timestamp.now().timestamp()}"
 
 # --- Matrix Controls ---
 col1, col2 = st.columns([1, 1])
 with col1:
     if st.button("🔁 Reset to Default Matrix"):
         st.session_state['scoring_matrix'] = default_matrix.copy()
+        st.session_state['multipliers'] = pd.DataFrame([[1.0] * len(types)], columns=types, index=['Multiplier'])
+        st.session_state['additions'] = pd.DataFrame([[0.0] * len(types)], columns=types, index=['Addition'])
+        st.session_state['subtractions'] = pd.DataFrame([[0.0] * len(types)], columns=types, index=['Subtraction'])
         st.session_state['matrix_editor_key'] = f"matrix_{pd.Timestamp.now().timestamp()}"
-
 with col2:
     st.download_button(
         label="📥 Download Scoring Matrix as CSV",
@@ -63,6 +112,7 @@ if uploaded_file and st.button("Apply Scoring Model", key="apply_model"):
     st.session_state['scoring_matrix'] = scoring_matrix.copy()
     df = pd.read_csv(uploaded_file)
 
+    # Calculate points using status quo and model matrices
     df['status_quo_points'] = df.apply(
         lambda row: scoring_matrix_dict.get(row['trntype_pts'], {}).get(row['round'], 0), axis=1
     )
